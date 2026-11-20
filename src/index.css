@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: #F6F8FC;
+    color: #1e293b;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+}
+
+.tactile-card {
+  background-color: #ffffff;
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px rgba(10, 31, 92, 0.04), 0 8px 24px rgba(29, 78, 216, 0.06);
+  border: 1px solid #E5ECF6;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+.tactile-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(10, 31, 92, 0.06), 0 12px 32px rgba(29, 78, 216, 0.1);
+}
+
+.tactile-btn-primary {
+  background: linear-gradient(to bottom, #3B82F6, #1D4ED8);
+  color: #ffffff;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 8px rgba(29, 78, 216, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  transition: all 150ms ease;
+}
+.tactile-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+.tactile-btn-primary:active {
+  transform: translateY(1px);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.tactile-btn-secondary {
+  background-color: #ffffff;
+  border: 1px solid #E5ECF6;
+  color: #0A1F5C;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 4px rgba(10, 31, 92, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transition: all 150ms ease;
+}
+.tactile-btn-secondary:hover {
+  background-color: #F2F7FF;
+  border-color: #DCEBFF;
+}
+.tactile-btn-secondary:active {
+  transform: translateY(1px);
+}
+
+.tactile-input {
+  background-color: #F6F8FC;
+  border: 1px solid #E5ECF6;
+  border-radius: 0.75rem;
+  box-shadow: inset 0 2px 4px rgba(10, 31, 92, 0.04);
+  height: 44px;
+  transition: all 150ms ease;
+}
+.tactile-input:focus {
+  outline: none;
+  background-color: #ffffff;
+  border-color: #1D4ED8;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.15), inset 0 1px 2px rgba(10, 31, 92, 0.04);
+}
+
+.tactile-recessed {
+  background-color: #F6F8FC;
+  border-radius: 0.75rem;
+  box-shadow: inset 0 2px 5px rgba(10, 31, 92, 0.06);
+  border: 1px solid #E5ECF6;
+}
