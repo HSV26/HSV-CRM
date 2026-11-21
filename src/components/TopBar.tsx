@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase';
 interface TopBarProps {
   currentTab: TabType;
   onOpenCommandPalette: () => void;
-  onOpenNewModal: (type: 'lead' | 'client' | 'task' | 'payment' | 'proposal') => void;
+  onOpenNewModal: (type: 'lead' | 'client' | 'task' | 'payment' | 'proposal' | 'contract') => void;
   hasNotifications?: boolean;
 }
 
@@ -36,6 +36,8 @@ export default function TopBar({ currentTab, onOpenCommandPalette, onOpenNewModa
       case 'sources': return { title: 'Sources Report', desc: 'Lead channel performance & attribution' };
       case 'proposals': return { title: 'Proposals Generator', desc: 'Client proposals & commercial agreements' };
       case 'proposal-editor': return { title: 'Proposal Editor', desc: 'Edit proposal details & deliverables' };
+      case 'contracts': return { title: 'Contracts', desc: 'Service agreements, signatures & renewals' };
+      case 'contract-detail': return { title: 'Contract Editor', desc: 'Clause-based service agreement & PDF' };
       default: return { title: 'HotelStory CRM', desc: '' };
     }
   };
@@ -98,6 +100,12 @@ export default function TopBar({ currentTab, onOpenCommandPalette, onOpenNewModa
                 className="w-full text-left px-4 py-2.5 text-xs font-medium text-slate-700 hover:bg-[#F2F7FF] hover:text-[#1D4ED8] transition-all"
               >
                 + New Proposal
+              </button>
+              <button
+                onClick={() => { onOpenNewModal('contract'); setDropdownOpen(false); }}
+                className="w-full text-left px-4 py-2.5 text-xs font-medium text-slate-700 hover:bg-[#F2F7FF] hover:text-[#1D4ED8] transition-all"
+              >
+                + New Contract
               </button>
               <button
                 onClick={() => { onOpenNewModal('task'); setDropdownOpen(false); }}

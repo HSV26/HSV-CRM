@@ -13,11 +13,12 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  FileText
+  FileText,
+  FileSignature
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
-export type TabType = 'dashboard' | 'leads' | 'clients' | 'client-detail' | 'tasks' | 'payments' | 'renewals' | 'sources' | 'proposals' | 'proposal-editor';
+export type TabType = 'dashboard' | 'leads' | 'clients' | 'client-detail' | 'tasks' | 'payments' | 'renewals' | 'sources' | 'proposals' | 'proposal-editor' | 'contracts' | 'contract-detail';
 
 interface SidebarProps {
   currentTab: TabType;
@@ -66,7 +67,8 @@ export default function Sidebar({ currentTab, onTabChange, onSelectClient }: Sid
       title: 'Sales',
       items: [
         { id: 'leads' as TabType, label: 'Leads Pipeline', icon: Users },
-        { id: 'proposals' as TabType, label: 'Proposals', icon: FileText }
+        { id: 'proposals' as TabType, label: 'Proposals', icon: FileText },
+        { id: 'contracts' as TabType, label: 'Contracts', icon: FileSignature }
       ]
     },
     {
@@ -126,7 +128,7 @@ export default function Sidebar({ currentTab, onTabChange, onSelectClient }: Sid
               )}
               {group.items.map((item) => {
                 const Icon = item.icon;
-                const isActive = currentTab === item.id || (currentTab === 'client-detail' && item.id === 'clients') || (currentTab === 'proposal-editor' && item.id === 'proposals');
+                const isActive = currentTab === item.id || (currentTab === 'client-detail' && item.id === 'clients') || (currentTab === 'proposal-editor' && item.id === 'proposals') || (currentTab === 'contract-detail' && item.id === 'contracts');
                 return (
                   <button
                     key={item.id}
@@ -249,7 +251,7 @@ export default function Sidebar({ currentTab, onTabChange, onSelectClient }: Sid
                 </p>
                 {group.items.map((item) => {
                   const Icon = item.icon;
-                  const isActive = currentTab === item.id || (currentTab === 'client-detail' && item.id === 'clients') || (currentTab === 'proposal-editor' && item.id === 'proposals');
+                  const isActive = currentTab === item.id || (currentTab === 'client-detail' && item.id === 'clients') || (currentTab === 'proposal-editor' && item.id === 'proposals') || (currentTab === 'contract-detail' && item.id === 'contracts');
                   return (
                     <button
                       key={item.id}
@@ -308,7 +310,7 @@ export default function Sidebar({ currentTab, onTabChange, onSelectClient }: Sid
           { id: 'tasks' as TabType, label: 'Tasks', icon: CheckSquare },
         ].map((item) => {
           const Icon = item.icon;
-          const isActive = currentTab === item.id || (currentTab === 'client-detail' && item.id === 'clients') || (currentTab === 'proposal-editor' && item.id === 'proposals');
+          const isActive = currentTab === item.id || (currentTab === 'client-detail' && item.id === 'clients') || (currentTab === 'proposal-editor' && item.id === 'proposals') || (currentTab === 'contract-detail' && item.id === 'contracts');
           return (
             <button
               key={item.id}

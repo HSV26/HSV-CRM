@@ -24,7 +24,7 @@ import { getEffectivePaymentAmount, isPaymentOverdue } from '../lib/paymentOptio
 
 interface DashboardViewProps {
   onNavigate: (tab: TabType, clientId?: string) => void;
-  onOpenNewModal: (type: 'lead' | 'client' | 'task' | 'payment' | 'proposal') => void;
+  onOpenNewModal: (type: 'lead' | 'client' | 'task' | 'payment' | 'proposal' | 'contract') => void;
   refreshKey?: number;
 }
 

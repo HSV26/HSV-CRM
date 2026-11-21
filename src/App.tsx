@@ -13,6 +13,8 @@ import RenewalsView from './components/RenewalsView';
 import SourcesReportView from './components/SourcesReportView';
 import ProposalsListView from './components/ProposalsListView';
 import ProposalEditorView from './components/ProposalEditorView';
+import ContractsListView from './components/ContractsListView';
+import ContractDetailView from './components/ContractDetailView';
 import AddLeadModal from './components/AddLeadModal';
 import AddClientModal from './components/AddClientModal';
 import TaskModal from './components/TaskModal';
@@ -24,12 +26,16 @@ export default function App() {
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [activeProposalId, setActiveProposalId] = useState<string | null>(null);
   const [proposalPrefill, setProposalPrefill] = useState<{ type: 'lead' | 'client'; id: string } | null>(null);
+  const [activeContractId, setActiveContractId] = useState<string | null>(null);
+  const [contractPrefill, setContractPrefill] = useState<{ clientId?: string | null; proposalId?: string | null } | null>(null);
+  const [contractReturnTab, setContractReturnTab] = useState<TabType>('contracts');
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [leadsRefreshKey, setLeadsRefreshKey] = useState(0);
   const [clientsRefreshKey, setClientsRefreshKey] = useState(0);
   const [tasksRefreshKey, setTasksRefreshKey] = useState(0);
   const [paymentsRefreshKey, setPaymentsRefreshKey] = useState(0);
   const [proposalsRefreshKey, setProposalsRefreshKey] = useState(0);
+  const [contractsRefreshKey, setContractsRefreshKey] = useState(0);
   const [openLeadId, setOpenLeadId] = useState<string | null>(null);
 
   // Global "+ New" Modal State
@@ -56,23 +62,51 @@ export default function App() {
       setCurrentTab('proposal-editor');
       return;
     }
+    if (tab === 'contract-detail') {
+      setContractReturnTab(currentTab === 'contract-detail' ? 'contracts' : currentTab);
+      setCurrentTab('contract-detail');
+      return;
+    }
     if (clientId) {
       setSelectedClientId(clientId);
+      setActiveContractId(null);
+      setContractPrefill(null);
       setCurrentTab('client-detail');
     } else {
       setSelectedClientId(null);
       setActiveProposalId(null);
       setProposalPrefill(null);
+      setActiveContractId(null);
+      setContractPrefill(null);
       setCurrentTab(tab);
     }
   };
 
-  const handleOpenNewAction = (type: 'lead' | 'client' | 'task' | 'payment' | 'proposal') => {
+  const handleOpenContract = (
+    contractId?: string,
+    prefillClientId?: string,
+    prefillProposalId?: string
+  ) => {
+    setContractReturnTab(currentTab === 'contract-detail' ? 'contracts' : currentTab);
+    setActiveContractId(contractId || null);
+    setContractPrefill(
+      prefillClientId || prefillProposalId
+        ? { clientId: prefillClientId || null, proposalId: prefillProposalId || null }
+        : null
+    );
+    setCurrentTab('contract-detail');
+  };
+
+  const handleOpenNewAction = (type: 'lead' | 'client' | 'task' | 'payment' | 'proposal' | 'contract') => {
     if (type === 'proposal') {
       setReturnTab(currentTab === 'proposal-editor' ? 'proposals' : currentTab);
       setActiveProposalId(null);
       setProposalPrefill(null);
       setCurrentTab('proposal-editor');
+      return;
+    }
+    if (type === 'contract') {
+      handleOpenContract();
       return;
     }
     setNewModalType(type);
@@ -134,7 +168,7 @@ export default function App() {
               <DashboardView
                 onNavigate={handleNavigate}
                 onOpenNewModal={handleOpenNewAction}
-                refreshKey={leadsRefreshKey + clientsRefreshKey + tasksRefreshKey + paymentsRefreshKey}
+                refreshKey={leadsRefreshKey + clientsRefreshKey + tasksRefreshKey + paymentsRefreshKey + contractsRefreshKey}
               />
             )}
             {currentTab === 'leads' && (
@@ -159,6 +193,7 @@ export default function App() {
                 clientId={selectedClientId}
                 onBack={() => setCurrentTab('clients')}
                 onCreateProposal={handleCreateProposalFromSource}
+                onOpenContract={handleOpenContract}
                 onTasksMutated={() => setTasksRefreshKey((k) => k + 1)}
                 onPaymentsMutated={() => setPaymentsRefreshKey((k) => k + 1)}
               />
@@ -180,7 +215,8 @@ export default function App() {
             {currentTab === 'renewals' && (
               <RenewalsView 
                 onOpenClientProfile={(clientId) => handleNavigate('client-detail', clientId)}
-                refreshKey={clientsRefreshKey + paymentsRefreshKey}
+                onOpenContract={handleOpenContract}
+                refreshKey={clientsRefreshKey + paymentsRefreshKey + contractsRefreshKey}
               />
             )}
             {currentTab === 'sources' && <SourcesReportView />}
@@ -194,6 +230,36 @@ export default function App() {
                   setCurrentTab('proposal-editor');
                 }}
                 onOpenClientProfile={(clientId) => handleNavigate('client-detail', clientId)}
+              />
+            )}
+            {currentTab === 'contracts' && (
+              <ContractsListView
+                refreshKey={contractsRefreshKey}
+                onOpenContract={handleOpenContract}
+                onOpenClientProfile={(clientId) => handleNavigate('client-detail', clientId)}
+              />
+            )}
+            {currentTab === 'contract-detail' && (
+              <ContractDetailView
+                contractId={activeContractId}
+                prefillClientId={contractPrefill?.clientId}
+                prefillProposalId={contractPrefill?.proposalId}
+                onBack={() => {
+                  setActiveContractId(null);
+                  setContractPrefill(null);
+                  setCurrentTab(
+                    contractReturnTab === 'contract-detail' ? 'contracts' : contractReturnTab
+                  );
+                }}
+                onOpenContract={(newId) => {
+                  setActiveContractId(newId);
+                  setContractPrefill(null);
+                }}
+                onOpenClientProfile={(clientId) => handleNavigate('client-detail', clientId)}
+                onContractSaved={() => {
+                  setContractsRefreshKey((k) => k + 1);
+                  setClientsRefreshKey((k) => k + 1);
+                }}
               />
             )}
           </main>

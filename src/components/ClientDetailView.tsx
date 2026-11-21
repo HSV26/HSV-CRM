@@ -18,7 +18,9 @@ import {
   ExternalLink, 
   Copy, 
   Check, 
-  Sparkles
+  Sparkles,
+  FileSignature,
+  Download
 } from 'lucide-react';
 import { SkeletonCard, SkeletonTable } from './SkeletonLoader';
 import ErrorCard from './ErrorCard';
@@ -31,18 +33,24 @@ import {
   getEffectivePaymentAmount,
   getEffectivePaymentStatus,
 } from '../lib/paymentOptions';
+import {
+  getContractStatusBadgeStyle,
+  getEffectiveContractStatus,
+} from '../lib/contractConfig';
+import { downloadContractPdf } from '../lib/contractPdf';
 
 interface ClientDetailViewProps {
   clientId: string;
   onBack: () => void;
   onCreateProposal: (type: 'client', id: string) => void;
+  onOpenContract?: (contractId?: string, prefillClientId?: string, prefillProposalId?: string) => void;
   onTasksMutated?: () => void;
   onPaymentsMutated?: () => void;
 }
 
-type ProfileTab = 'overview' | 'tasks' | 'reports' | 'payments' | 'activity';
+type ProfileTab = 'overview' | 'tasks' | 'reports' | 'payments' | 'contracts' | 'activity';
 
-export default function ClientDetailView({ clientId, onBack, onCreateProposal, onTasksMutated, onPaymentsMutated }: ClientDetailViewProps) {
+export default function ClientDetailView({ clientId, onBack, onCreateProposal, onOpenContract, onTasksMutated, onPaymentsMutated }: ClientDetailViewProps) {
   const { showToast } = useToast();
   const [clientState, setClientState] = useState<{ data: any | null; error: string | null; isMissingTable: boolean; loading: boolean }>({ data: null, error: null, isMissingTable: false, loading: true });
   const [activeTab, setActiveTab] = useState<ProfileTab>('overview');
@@ -88,6 +96,9 @@ export default function ClientDetailView({ clientId, onBack, onCreateProposal, o
   const [payments, setPayments] = useState<any[]>([]);
   const [isAddPaymentOpen, setIsAddPaymentOpen] = useState(false);
   const [markingPaidPayment, setMarkingPaidPayment] = useState<any | null>(null);
+
+  // Contracts state
+  const [contracts, setContracts] = useState<any[]>([]);
 
   // Activity state
   const [activities, setActivities] = useState<any[]>([]);
@@ -138,7 +149,7 @@ export default function ClientDetailView({ clientId, onBack, onCreateProposal, o
       setLinkedLead(leadRes.data);
     }
 
-    const [tasksRes, reportsRes, paymentsRes, activitiesRes] = await Promise.all([
+    const [tasksRes, reportsRes, paymentsRes, activitiesRes, contractsRes] = await Promise.all([
       safeQuery(async () => {
         const { data, error } = await supabase.from('client_tasks').select('*').eq('client_id', clientId).order('due_date', { ascending: true });
         return { data: data || [], error };
@@ -154,6 +165,10 @@ export default function ClientDetailView({ clientId, onBack, onCreateProposal, o
       safeQuery(async () => {
         const { data, error } = await supabase.from('client_activities').select('*').eq('client_id', clientId).order('created_at', { ascending: false });
         return { data: data || [], error };
+      }, []),
+      safeQuery(async () => {
+        const { data, error } = await supabase.from('contracts').select('*').eq('client_id', clientId).order('created_at', { ascending: false });
+        return { data: data || [], error };
       }, [])
     ]);
 
@@ -161,6 +176,7 @@ export default function ClientDetailView({ clientId, onBack, onCreateProposal, o
     setReports(reportsRes.data);
     setPayments(paymentsRes.data);
     setActivities(activitiesRes.data);
+    setContracts(contractsRes.data);
   };
 
   const handleSaveOverview = async () => {
@@ -497,6 +513,7 @@ ${rep.report_link ? `🔗 View Full Report: ${rep.report_link}` : ''}`;
           { id: 'tasks' as ProfileTab, label: 'Content Tasks', icon: CheckSquare, count: tasks.length },
           { id: 'reports' as ProfileTab, label: 'Reports', icon: FileText, count: reports.length },
           { id: 'payments' as ProfileTab, label: 'Payments', icon: CreditCard, count: payments.length },
+          { id: 'contracts' as ProfileTab, label: 'Contracts', icon: FileSignature, count: contracts.length },
           { id: 'activity' as ProfileTab, label: 'Activity', icon: Clock, count: activities.length },
         ].map(tab => {
           const Icon = tab.icon;
@@ -947,6 +964,124 @@ ${rep.report_link ? `🔗 View Full Report: ${rep.report_link}` : ''}`;
               </table>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* TAB: CONTRACTS */}
+      {activeTab === 'contracts' && (
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-[#DCEBFF]">
+            <div>
+              <h2 className="text-base font-bold text-[#0A1F5C] font-['Plus_Jakarta_Sans']">Client Contracts</h2>
+              <p className="text-xs text-slate-500">Service agreements, signed retainers, and contract PDFs for this client.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => onOpenContract?.(undefined, clientId)}
+              className="px-4 py-2 bg-[#1D4ED8] hover:bg-blue-700 text-white rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 shadow-sm shrink-0"
+            >
+              <Plus className="w-4 h-4" />
+              <span>New Contract</span>
+            </button>
+          </div>
+
+          {contracts.length === 0 ? (
+            <div className="py-12 text-center bg-white rounded-2xl border border-[#DCEBFF] space-y-3">
+              <FileSignature className="w-10 h-10 text-slate-300 mx-auto" />
+              <p className="text-sm font-semibold text-[#0A1F5C]">No contracts for this client yet.</p>
+              <button
+                type="button"
+                onClick={() => onOpenContract?.(undefined, clientId)}
+                className="px-4 py-2 bg-[#F2F7FF] text-[#1D4ED8] border border-[#DCEBFF] rounded-xl text-xs font-semibold inline-flex items-center gap-1.5"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Create First Contract</span>
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {contracts.map((c) => {
+                const eff = getEffectiveContractStatus(c);
+                return (
+                  <div
+                    key={c.id}
+                    onClick={() => onOpenContract?.(c.id)}
+                    className="bg-white rounded-2xl border border-[#DCEBFF] p-5 space-y-3 hover:border-[#1D4ED8] cursor-pointer transition-colors shadow-2xs"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <span className="font-mono text-xs font-bold text-[#1D4ED8] bg-[#F2F7FF] border border-[#DCEBFF] px-2.5 py-0.5 rounded-md">
+                          {c.contract_number}
+                        </span>
+                        <h3 className="text-sm font-bold text-[#0A1F5C] mt-2">
+                          {c.package || 'Growth'} Package
+                        </h3>
+                      </div>
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full font-semibold border text-[10px] shrink-0 ${getContractStatusBadgeStyle(
+                          eff
+                        )}`}
+                      >
+                        {eff}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 text-xs">
+                      <div>
+                        <span className="text-[10px] text-slate-400 uppercase block">Monthly Fee</span>
+                        <span className="font-bold text-[#0A1F5C] tabular-nums">
+                          {formatINR(Number(c.monthly_fee) || 0)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 uppercase block">Start Date</span>
+                        <span className="font-medium text-slate-700">{formatDate(c.start_date)}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 uppercase block">Term</span>
+                        <span className="font-medium text-slate-700">
+                          {c.term_type === 'fixed' && c.term_months
+                            ? `${c.term_months} mo`
+                            : 'Monthly'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {c.term_type === 'fixed' && c.renewal_date && (
+                      <div className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1.5 font-medium">
+                        Renewal Date: {formatDate(c.renewal_date)}
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                      <span className="text-[11px] text-[#1D4ED8] font-semibold">
+                        Tap to view / edit →
+                      </span>
+                      <button
+                        type="button"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            const filename = await downloadContractPdf(c);
+                            showToast(`Downloaded ${filename}`, 'success');
+                          } catch (err: any) {
+                            showToast(
+                              'Could not generate PDF: ' + (err?.message || 'Unknown error'),
+                              'error'
+                            );
+                          }
+                        }}
+                        className="px-2.5 py-1.5 bg-[#F2F7FF] hover:bg-blue-100 text-[#1D4ED8] rounded-lg text-[11px] font-semibold inline-flex items-center gap-1"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>PDF</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 

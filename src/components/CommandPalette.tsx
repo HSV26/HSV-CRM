@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Search, LayoutDashboard, Users, UserCheck, CheckSquare, CreditCard, CalendarClock, PieChart, X, ArrowRight } from 'lucide-react';
+import { Search, LayoutDashboard, Users, UserCheck, CheckSquare, CreditCard, CalendarClock, PieChart, X, ArrowRight, FileText, FileSignature } from 'lucide-react';
 import { TabType } from './Sidebar';
 import { supabase } from '../lib/supabase';
 
@@ -44,6 +44,8 @@ export default function CommandPalette({ isOpen, onClose, onNavigate }: CommandP
   const navigationItems = [
     { label: 'Dashboard', tab: 'dashboard' as TabType, icon: LayoutDashboard },
     { label: 'Leads Pipeline', tab: 'leads' as TabType, icon: Users },
+    { label: 'Proposals', tab: 'proposals' as TabType, icon: FileText },
+    { label: 'Contracts', tab: 'contracts' as TabType, icon: FileSignature },
     { label: 'Clients Management', tab: 'clients' as TabType, icon: UserCheck },
     { label: 'Global Tasks Board', tab: 'tasks' as TabType, icon: CheckSquare },
     { label: 'Payments & Invoices', tab: 'payments' as TabType, icon: CreditCard },
